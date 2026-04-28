@@ -1,0 +1,1 @@
+[["authSource=admin&replicaSet=atlas-kcpx3o-shard-0"]]
