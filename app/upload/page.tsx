@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-export default function UploadPage() {
+function UploadContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -227,5 +227,18 @@ export default function UploadPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function UploadPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F0E7D5" }}>
+        <div style={{ width: 40, height: 40, border: "4px solid rgba(33,40,66,0.1)", borderTopColor: "#212842", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    }>
+      <UploadContent />
+    </Suspense>
   );
 }

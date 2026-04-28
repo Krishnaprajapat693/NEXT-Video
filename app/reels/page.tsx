@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ReelsPage() {
+function ReelsContent() {
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -87,6 +87,20 @@ export default function ReelsPage() {
       )}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } } ::-webkit-scrollbar { display: none; }`}</style>
     </div>
+  );
+}
+
+export default function ReelsPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ display: "flex", flexDirection: "column", height: "100vh", alignItems: "center", justifyContent: "center", background: "#F0E7D5" }}>
+        <div style={{ width: 48, height: 48, border: "5px solid rgba(33,40,66,0.15)", borderTopColor: "#212842", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <p style={{ marginTop: 16, color: "rgba(33,40,66,0.5)", fontSize: 13, fontWeight: 600 }}>Loading Reels...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    }>
+      <ReelsContent />
+    </Suspense>
   );
 }
 
