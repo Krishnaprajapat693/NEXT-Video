@@ -62,7 +62,11 @@ export default function ReelPlayer({ video }: ReelPlayerProps) {
       <video
         ref={videoRef}
         src={video.videoUrl}
-        poster={video.thumbnailUrl}
+        poster={
+          video.thumbnailUrl?.includes("placeholder") || video.thumbnailUrl?.includes("thumb_default")
+            ? undefined
+            : video.thumbnailUrl
+        }
         className="w-full h-full object-cover cursor-pointer"
         loop
         playsInline

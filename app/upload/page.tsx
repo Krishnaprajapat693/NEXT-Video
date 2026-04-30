@@ -50,26 +50,60 @@ function UploadContent() {
     setLoading(true);
     setError("");
 
-    const formData = new FormData();
-    formData.append("file", file);
-    if (uploadType === "reel") {
-      formData.append("title", title);
-      formData.append("description", description);
-    } else {
-      formData.append("caption", caption);
-    }
-
-    const endpoint = uploadType === "reel" ? "/api/upload" : "/api/stories";
     try {
-      const res = await fetch(endpoint, { method: "POST", body: formData });
+      // 1. Upload to Cloudinary First
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      // Cloudinary often provides 'ml_default' as a default unsigned preset out-of-the-box
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default";
+
+      if (!cloudName) {
+        throw new Error("Cloudinary is not configured. Please add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME to .env");
+      }
+
+      const cloudFormData = new FormData();
+      cloudFormData.append("file", file);
+      cloudFormData.append("upload_preset", uploadPreset);
+
+      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+        method: "POST",
+        body: cloudFormData,
+      });
+
+      if (!cloudRes.ok) {
+        throw new Error("Failed to upload to Cloudinary. Make sure your upload preset is unsigned.");
+      }
+
+      const cloudData = await cloudRes.json();
+      const mediaUrl = cloudData.secure_url;
+      const mediaType = cloudData.resource_type === "video" ? "video" : "image";
+      
+      // Auto-generate thumbnail for videos from Cloudinary
+      let thumbnailUrl = mediaUrl;
+      if (mediaType === "video") {
+        thumbnailUrl = mediaUrl.replace(/\.[^/.]+$/, ".jpg");
+      }
+
+      // 2. Save to Database via API
+      const endpoint = uploadType === "reel" ? "/api/upload" : "/api/stories";
+      const payload = uploadType === "reel" 
+        ? { title, description, mediaUrl, thumbnailUrl }
+        : { mediaUrl, mediaType, caption };
+
+      const res = await fetch(endpoint, { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
       const data = await res.json();
       if (res.ok) {
-        router.push(uploadType === "reel" ? "/" : "/");
+        router.push("/");
       } else {
-        setError(data.error || "Upload failed. Please try again.");
+        setError(data.error || "Database save failed. Please try again.");
       }
-    } catch {
-      setError("Network error. Please try again.");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Upload error. Please try again.");
     } finally {
       setLoading(false);
     }

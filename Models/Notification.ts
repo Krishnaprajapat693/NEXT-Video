@@ -13,6 +13,10 @@ export interface INotification {
   createdAt?: Date;
 }
 
+// Ensure dependent models are registered before populating
+import "@/Models/video";
+import "@/Models/Story";
+
 const notificationSchema = new Schema<INotification>(
   {
     recipientId: { type: Schema.Types.ObjectId, ref: "User", required: true },

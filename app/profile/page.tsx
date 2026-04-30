@@ -206,7 +206,7 @@ export default function ProfilePage() {
                 onClick={() => router.push(`/reels?id=${reel._id}`)}
               >
                 {/* Thumbnail with fallback */}
-                {reel.thumbnailUrl && !reel.thumbnailUrl.includes("placeholder") ? (
+                {reel.thumbnailUrl && !reel.thumbnailUrl.includes("placeholder") && !reel.thumbnailUrl.includes("thumb_default") ? (
                   <img src={reel.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : reel.videoUrl && /\.(jpg|jpeg|png|gif|webp|avif)$/i.test(reel.videoUrl) ? (
                   <img src={reel.videoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />

@@ -40,34 +40,17 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const caption = (formData.get("caption") as string) || "";
+    const { mediaUrl, mediaType, caption } = await req.json();
 
-    if (!file) return NextResponse.json({ error: "File is required" }, { status: 400 });
+    if (!mediaUrl) return NextResponse.json({ error: "mediaUrl is required" }, { status: 400 });
 
-    const isVideo = file.type.startsWith("video/");
-    const isImage = file.type.startsWith("image/");
-    if (!isVideo && !isImage) {
-      return NextResponse.json({ error: "File must be an image or video" }, { status: 400 });
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const ext = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg");
-    const filename = `story_${Date.now()}.${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "stories");
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    fs.writeFileSync(path.join(uploadDir, filename), buffer);
-
-    const mediaUrl = `/stories/${filename}`;
     const userId = (session.user as any).id;
 
     await connectToDatabase();
     const story = await Story.create({
       userId,
       mediaUrl,
-      mediaType: isVideo ? "video" : "image",
+      mediaType,
       caption,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });

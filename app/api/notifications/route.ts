@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import Notification from "@/Models/Notification";
 
+
 // GET — fetch notifications for current user
 export async function GET(req: NextRequest) {
   try {
